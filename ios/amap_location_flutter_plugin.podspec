@@ -17,5 +17,6 @@ AMapLocation flutter plugin
   s.dependency 'Flutter'
 
   s.ios.deployment_target = '8.0'
+  s.dependency 'AMapLocation'
 end
 
