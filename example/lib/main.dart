@@ -19,13 +19,17 @@ class _MyAppState extends State<MyApp> {
   Map<String, Object> _locationResult;
 
   StreamSubscription<Map<String, Object>> _locationListener;
+  StreamSubscription<Map<String, Object>> _locationListener2;
 
   AmapLocationFlutterPlugin _locationPlugin = new AmapLocationFlutterPlugin();
+  AmapLocationFlutterPlugin _locationPlugin2 = new AmapLocationFlutterPlugin();
 
   @override
   void initState() {
     super.initState();
     requestPermission();
+    AmapLocationFlutterPlugin.setApiKey("28bd43ed17d636692c8803e9e0d246b2", "30cbeb785c52b1b8971b6f0f4ef8b7cc");
+
     _locationListener = _locationPlugin
         .onLocationChanged()
         .listen((Map<String, Object> result) {
@@ -33,6 +37,23 @@ class _MyAppState extends State<MyApp> {
         _locationResult = result;
       });
     });
+
+    _locationListener2 = _locationPlugin2
+        .onLocationChanged()
+        .listen((Map<String, Object> result) {
+      print('222222222222222222222');
+      print(result);
+      _locationListener2.cancel();
+      _locationPlugin2.destroy();
+    });
+
+    AMapLocationOption locationOption = new AMapLocationOption();
+    locationOption.onceLocation = true;
+    locationOption.desiredAccuracy = DesiredAccuracy.HundredMeters;
+    locationOption.geoLanguage = GeoLanguage.ZH;
+    _locationPlugin2.setLocationOption(locationOption);
+    _locationPlugin2.startLocation();
+
   }
 
   @override
@@ -48,6 +69,7 @@ class _MyAppState extends State<MyApp> {
       AMapLocationOption locationOption = new AMapLocationOption();
       locationOption.locationMode = AMapLocationMode.Hight_Accuracy;
       locationOption.locationInterval = 3000;
+      locationOption.geoLanguage = GeoLanguage.ZH;
       _locationPlugin.setLocationOption(locationOption);
     }
   }
@@ -61,6 +83,12 @@ class _MyAppState extends State<MyApp> {
 
   void _stopLocation() {
     if (null != _locationPlugin) {
+      AMapLocationOption locationOption = new AMapLocationOption();
+      locationOption.onceLocation = true;
+      locationOption.desiredAccuracy = DesiredAccuracy.HundredMeters;
+      locationOption.geoLanguage = GeoLanguage.ZH;
+      _locationPlugin.setLocationOption(locationOption);
+
       _locationPlugin.stopLocation();
     }
   }

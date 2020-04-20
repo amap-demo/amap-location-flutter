@@ -20,6 +20,7 @@ class AmapLocationFlutterPlugin {
       .map<Map<String, Object>>((element) => element.cast<String, Object>());
 
   StreamController<Map<String, Object>> _receiveStream;
+  StreamSubscription<Map<String, Object>> _subscription;
   String _pluginKey;
 
   AmapLocationFlutterPlugin() {
@@ -38,11 +39,6 @@ class AmapLocationFlutterPlugin {
     return;
   }
 
-  ///销毁定位
-  void destroy() {
-    _methodChannel.invokeMethod('destroy', {'pluginKey': _pluginKey});
-  }
-
   ///设置apikey
   ///androidKey Android平台的key
   ///iosKey ios平台的key
@@ -55,17 +51,30 @@ class AmapLocationFlutterPlugin {
   void setLocationOption(AMapLocationOption locationOption) {
     Map option = locationOption.getOptionsMap();
     option['pluginKey'] = _pluginKey;
-    _methodChannel.invokeMethod('setLocationOption', option);
+    _methodChannel.invokeMethod(
+        'setLocationOption', option);
   }
 
+  ///销毁定位
+  void destroy(){
+    _methodChannel.invokeListMethod('destroy', {'pluginKey' : _pluginKey});
+    if (_subscription != null) {
+      _receiveStream.close();
+      _subscription.cancel();
+      _receiveStream = null;
+      _subscription = null;
+    }
+  }
 
   Stream<Map<String, Object>> onLocationChanged() {
     if (_receiveStream == null) {
       _receiveStream = StreamController();
-      _onLocationChanged.listen((Map<String, Object> event) {
-        if (event != null && event['pluginKey'] == _pluginKey) {
-          event.remove('pluginKey');
-          _receiveStream.add(event);
+      _subscription = _onLocationChanged.listen((Map<String, Object> event) {
+
+        if(event != null && event['pluginKey'] == _pluginKey){
+          Map<String, Object> newEvent = Map<String, Object>.of(event);
+          newEvent.remove('pluginKey');
+          _receiveStream.add(newEvent);
         }
       });
     }
