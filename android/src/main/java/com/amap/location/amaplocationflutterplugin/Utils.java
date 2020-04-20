@@ -43,8 +43,7 @@ public class Utils {
                 result.put("description", location.getDescription());
             } else {
                 result.put("errorCode", location.getErrorCode());
-                result.put("errorInfo", location.getErrorInfo());
-                result.put("locationDetail", location.getLocationDetail());
+                result.put("errorInfo", location.getErrorInfo() + "#" + location.getLocationDetail());
             }
         } else {
             result.put("errorCode", -1);

@@ -2,71 +2,61 @@ package com.amap.location.amaplocationflutterplugin;
 
 import android.content.Context;
 import android.text.TextUtils;
-import android.util.Log;
 
-import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
-import com.amap.api.location.AMapLocationListener;
 
-import java.text.SimpleDateFormat;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 /**
  * 高德地图定位sdkFlutterPlugin
  */
-public class AmapLocationFlutterPlugin implements MethodCallHandler, EventChannel.StreamHandler, AMapLocationListener {
+public class AmapLocationFlutterPlugin implements MethodCallHandler,
+        EventChannel.StreamHandler,
+        FlutterPlugin {
 
     private static final String CHANNEL_METHOD_LOCATION = "amap_location_flutter_plugin";
     private static final String CHANNEL_STREAM_LOCATION = "amap_location_flutter_plugin_stream";
-    AMapLocationClient locationClient = null;
 
     private Context mContext = null;
 
-    private EventChannel.EventSink mEventSink = null;
+    public static EventChannel.EventSink mEventSink = null;
 
-    AmapLocationFlutterPlugin(Context context) {
-        mContext = context;
-    }
 
-    /**
-     * 注册组件
-     */
-    public static void registerWith(Registrar registrar) {
-        AmapLocationFlutterPlugin plugin = new AmapLocationFlutterPlugin(registrar.context());
-        /**
-         * 开始、停止定位
-         */
-        final MethodChannel channel = new MethodChannel(registrar.messenger(), CHANNEL_METHOD_LOCATION);
-        channel.setMethodCallHandler(plugin);
-
-        /**
-         * 监听onLocationChanged
-         */
-        final EventChannel eventChannel = new EventChannel(registrar.messenger(), CHANNEL_STREAM_LOCATION);
-        eventChannel.setStreamHandler(plugin);
-    }
+    private Map<String, AMapLocationClientImpl> locationClientMap = new HashMap<String, AMapLocationClientImpl>(10);
 
     @Override
     public void onMethodCall(MethodCall call, Result result) {
-        if (call.method.equals("startLocation")) {
-            startLocation();
-        } else if(call.method.equals("stopLocation")){
-            stopLocation();
-        } else {
-            result.notImplemented();
+        String callMethod = call.method;
+        switch (call.method) {
+            case "setApiKey":
+                setApiKey((Map) call.arguments);
+                break;
+            case "setLocationOption":
+                setLocationOption((Map) call.arguments);
+                break;
+            case "startLocation":
+                startLocation((Map) call.arguments);
+                break;
+            case "stopLocation":
+                stopLocation((Map) call.arguments);
+                break;
+            case "destroy":
+                destroy((Map) call.arguments);
+                break;
+            default:
+                result.notImplemented();
+                break;
+
         }
     }
-
 
     @Override
     public void onListen(Object o, EventChannel.EventSink eventSink) {
@@ -75,76 +65,140 @@ public class AmapLocationFlutterPlugin implements MethodCallHandler, EventChanne
 
     @Override
     public void onCancel(Object o) {
-        stopLocation();
-    }
-
-    /**
-     * 停止定位
-     */
-    private void stopLocation(){
-        if(null != locationClient) {
-            locationClient.stopLocation();
-            locationClient.onDestroy();
-            locationClient = null;
+        for (Map.Entry<String, AMapLocationClientImpl> entry : locationClientMap.entrySet()) {
+            entry.getValue().stopLocation();
         }
     }
 
     /**
      * 开始定位
      */
-    private void startLocation() {
-        if(null == locationClient) {
-            locationClient = new AMapLocationClient(mContext);
+    private void startLocation(Map argsMap) {
+        if (null == locationClientMap) {
+            locationClientMap = new HashMap<String, AMapLocationClientImpl>(10);
         }
-        locationClient.setLocationListener(this);
-        locationClient.startLocation();
-    }
 
-    /**
-     * 定位回调
-     * @param location
-     */
-    @Override
-    public void onLocationChanged(AMapLocation location) {
-        if(null == mEventSink) {
+        String pluginKey = getPluginKeyFromArgs(argsMap);
+        if (TextUtils.isEmpty(pluginKey)) {
             return;
         }
-        Map<String,Object> result = new LinkedHashMap<String,Object>();
-        result.put("callbackTime", formatUTC(System.currentTimeMillis(),null));
-        if(null != location) {
-            if(location.getErrorCode() == AMapLocation.LOCATION_SUCCESS) {
-                result.put("locTime", formatUTC(location.getTime(), null));
-                result.put("latitude", location.getLatitude());
-                result.put("longitude", location.getLongitude());
-                result.put("address", location.getAddress());
-            } else {
-                result.put("errorCode", location.getErrorCode());
-                result.put("errorInfo", location.getErrorInfo());
-                result.put("locationDetail", location.getLocationDetail());
-            }
+
+        AMapLocationClientImpl locationClientImp;
+        if (!locationClientMap.containsKey(pluginKey)) {
+            locationClientImp = new AMapLocationClientImpl(mContext, pluginKey, mEventSink);
+            locationClientMap.put(pluginKey, locationClientImp);
         } else {
-            result.put("errorCode", -1);
-            result.put("errorInfo", "location is null");
+            locationClientImp = getLocationClientImp(argsMap);
         }
-        mEventSink.success(result);
+
+        if (null != locationClientImp) {
+            locationClientImp.startLocation();
+        }
+    }
+
+
+    /**
+     * 停止定位
+     */
+    private void stopLocation(Map argsMap) {
+        AMapLocationClientImpl locationClientImp = getLocationClientImp(argsMap);
+        if (null != locationClientImp) {
+            locationClientImp.stopLocation();
+        }
     }
 
     /**
-     * 格式化时间
-     * @param time
-     * @param strPattern
-     * @return
+     * 销毁
+     *
+     * @param argsMap
      */
-    private String formatUTC(long time, String strPattern) {
-        if (TextUtils.isEmpty(strPattern)) {
-            strPattern = "yyyy-MM-dd HH:mm:ss";
+    private void destroy(Map argsMap) {
+        AMapLocationClientImpl locationClientImp = getLocationClientImp(argsMap);
+        if (null != locationClientImp) {
+            locationClientImp.destroy();
         }
-        SimpleDateFormat sdf = null;
-        try {
-            sdf = new SimpleDateFormat(strPattern, Locale.CHINA);
-            sdf.applyPattern(strPattern);
-        } catch (Throwable e) {
-        }
-        return sdf == null ? "NULL" : sdf.format(time);
     }
+
+    /**
+     * 设置apikey
+     *
+     * @param apiKeyMap
+     */
+    private void setApiKey(Map apiKeyMap) {
+        if (null != apiKeyMap) {
+            if (apiKeyMap.containsKey("android")
+                    && !TextUtils.isEmpty((String) apiKeyMap.get("android"))) {
+                AMapLocationClient.setApiKey((String) apiKeyMap.get("android"));
+            }
+        }
+    }
+
+    /**
+     * 设置定位参数
+     *
+     * @param argsMap
+     */
+    private void setLocationOption(Map argsMap) {
+        AMapLocationClientImpl locationClientImp = getLocationClientImp(argsMap);
+        if (null != locationClientImp) {
+            locationClientImp.setLocationOption(argsMap);
+        }
+    }
+
+
+    @Override
+    public void onAttachedToEngine(FlutterPluginBinding binding) {
+        if (null == mContext) {
+            mContext = binding.getApplicationContext();
+
+            /**
+             * 方法调用通道
+             */
+            final MethodChannel channel = new MethodChannel(binding.getBinaryMessenger(), CHANNEL_METHOD_LOCATION);
+            channel.setMethodCallHandler(this);
+
+            /**
+             * 回调监听通道
+             */
+            final EventChannel eventChannel = new EventChannel(binding.getBinaryMessenger(), CHANNEL_STREAM_LOCATION);
+            eventChannel.setStreamHandler(this);
+        }
+
+    }
+
+    @Override
+    public void onDetachedFromEngine(FlutterPluginBinding binding) {
+        for (Map.Entry<String, AMapLocationClientImpl> entry : locationClientMap.entrySet()) {
+            entry.getValue().destroy();
+        }
+    }
+
+    private AMapLocationClientImpl getLocationClientImp(Map argsMap) {
+        if (null == locationClientMap || locationClientMap.size() <= 0) {
+            return null;
+        }
+        String pluginKey = null;
+        if (null != argsMap) {
+            pluginKey = (String) argsMap.get("pluginKey");
+        }
+        if (TextUtils.isEmpty(pluginKey)) {
+            return null;
+        }
+
+        return locationClientMap.get(pluginKey);
+    }
+
+    private String getPluginKeyFromArgs(Map argsMap) {
+        String pluginKey = null;
+        try {
+            if (null != argsMap) {
+                pluginKey = (String) argsMap.get("pluginKey");
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        return pluginKey;
+    }
+
+
 }
