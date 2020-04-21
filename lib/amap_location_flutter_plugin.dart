@@ -23,6 +23,7 @@ class AmapLocationFlutterPlugin {
   StreamSubscription<Map<String, Object>> _subscription;
   String _pluginKey;
 
+  ///初始化
   AmapLocationFlutterPlugin() {
     _pluginKey = DateTime.now().millisecondsSinceEpoch.toString();
   }
@@ -39,25 +40,27 @@ class AmapLocationFlutterPlugin {
     return;
   }
 
-  ///设置apikey
-  ///androidKey Android平台的key
-  ///iosKey ios平台的key
+  ///设置Android和iOS的apikey，建议在weigdet初始化时设置<br>
+  ///apiKey的申请请参考高德开放平台官网<br>
+  ///Android端: https://lbs.amap.com/api/android-location-sdk/guide/create-project/get-key<br>
+  ///iOS端: https://lbs.amap.com/api/ios-location-sdk/guide/create-project/get-key<br>
+  ///[androidKey] Android平台的key<br>
+  ///[iosKey] ios平台的key<br>
   static void setApiKey(String androidKey, String iosKey) {
-    _methodChannel.invokeMethod('setApiKey',
-        {'android': androidKey, 'ios': iosKey});
+    _methodChannel
+        .invokeMethod('setApiKey', {'android': androidKey, 'ios': iosKey});
   }
 
   /// 设置定位参数
   void setLocationOption(AMapLocationOption locationOption) {
     Map option = locationOption.getOptionsMap();
     option['pluginKey'] = _pluginKey;
-    _methodChannel.invokeMethod(
-        'setLocationOption', option);
+    _methodChannel.invokeMethod('setLocationOption', option);
   }
 
   ///销毁定位
-  void destroy(){
-    _methodChannel.invokeListMethod('destroy', {'pluginKey' : _pluginKey});
+  void destroy() {
+    _methodChannel.invokeListMethod('destroy', {'pluginKey': _pluginKey});
     if (_subscription != null) {
       _receiveStream.close();
       _subscription.cancel();
@@ -66,12 +69,12 @@ class AmapLocationFlutterPlugin {
     }
   }
 
+  ///定位结果回调
   Stream<Map<String, Object>> onLocationChanged() {
     if (_receiveStream == null) {
       _receiveStream = StreamController();
       _subscription = _onLocationChanged.listen((Map<String, Object> event) {
-
-        if(event != null && event['pluginKey'] == _pluginKey){
+        if (event != null && event['pluginKey'] == _pluginKey) {
           Map<String, Object> newEvent = Map<String, Object>.of(event);
           newEvent.remove('pluginKey');
           _receiveStream.add(newEvent);
