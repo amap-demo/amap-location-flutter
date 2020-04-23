@@ -2,29 +2,86 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
+import 'amap_location_option.dart';
+
 class AmapLocationFlutterPlugin {
-  static const MethodChannel _channel =
-      const MethodChannel('amap_location_flutter_plugin');
-  static const EventChannel _stream = const EventChannel("amap_location_flutter_plugin_stream");
+  static const String _CHANNEL_METHOD_LOCATION = "amap_location_flutter_plugin";
+  static const String _CHANNEL_STREAM_LOCATION =
+      "amap_location_flutter_plugin_stream";
 
-  Stream<Map<String,Object>> _onLocationChanged;
+  static const MethodChannel _methodChannel =
+      const MethodChannel(_CHANNEL_METHOD_LOCATION);
+
+  static const EventChannel _eventChannel =
+      const EventChannel(_CHANNEL_STREAM_LOCATION);
+
+  static Stream<Map<String, Object>> _onLocationChanged = _eventChannel
+      .receiveBroadcastStream()
+      .asBroadcastStream()
+      .map<Map<String, Object>>((element) => element.cast<String, Object>());
+
+  StreamController<Map<String, Object>> _receiveStream;
+  StreamSubscription<Map<String, Object>> _subscription;
+  String _pluginKey;
+
+  ///初始化
+  AmapLocationFlutterPlugin() {
+    _pluginKey = DateTime.now().millisecondsSinceEpoch.toString();
+  }
+
+  ///开始定位
   void startLocation() {
-    _channel.invokeMethod('startLocation');
+    _methodChannel.invokeMethod('startLocation', {'pluginKey': _pluginKey});
     return;
   }
 
+  ///停止定位
   void stopLocation() {
-    _channel.invokeMethod('stopLocation');
+    _methodChannel.invokeMethod('stopLocation', {'pluginKey': _pluginKey});
     return;
   }
 
-  Stream<Map<String, Object>> onLocationChanged() {
-    if (_onLocationChanged == null) {
-      _onLocationChanged = _stream
-          .receiveBroadcastStream()
-          .map<Map<String, Object>>(
-              (element) => element.cast<String, Object>());
+  ///设置Android和iOS的apikey，建议在weigdet初始化时设置<br>
+  ///apiKey的申请请参考高德开放平台官网<br>
+  ///Android端: https://lbs.amap.com/api/android-location-sdk/guide/create-project/get-key<br>
+  ///iOS端: https://lbs.amap.com/api/ios-location-sdk/guide/create-project/get-key<br>
+  ///[androidKey] Android平台的key<br>
+  ///[iosKey] ios平台的key<br>
+  static void setApiKey(String androidKey, String iosKey) {
+    _methodChannel
+        .invokeMethod('setApiKey', {'android': androidKey, 'ios': iosKey});
+  }
+
+  /// 设置定位参数
+  void setLocationOption(AMapLocationOption locationOption) {
+    Map option = locationOption.getOptionsMap();
+    option['pluginKey'] = _pluginKey;
+    _methodChannel.invokeMethod('setLocationOption', option);
+  }
+
+  ///销毁定位
+  void destroy() {
+    _methodChannel.invokeListMethod('destroy', {'pluginKey': _pluginKey});
+    if (_subscription != null) {
+      _receiveStream.close();
+      _subscription.cancel();
+      _receiveStream = null;
+      _subscription = null;
     }
-    return _onLocationChanged;
+  }
+
+  ///定位结果回调
+  Stream<Map<String, Object>> onLocationChanged() {
+    if (_receiveStream == null) {
+      _receiveStream = StreamController();
+      _subscription = _onLocationChanged.listen((Map<String, Object> event) {
+        if (event != null && event['pluginKey'] == _pluginKey) {
+          Map<String, Object> newEvent = Map<String, Object>.of(event);
+          newEvent.remove('pluginKey');
+          _receiveStream.add(newEvent);
+        }
+      });
+    }
+    return _receiveStream.stream;
   }
 }
