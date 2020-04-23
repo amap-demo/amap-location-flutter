@@ -24,9 +24,6 @@
         android:icon="@mipmap/ic_launcher">
         <service android:name="com.amap.api.location.APSService"/>
         <meta-data android:name="flutterEmbedding" android:value="2"/>
-<!--        <meta-data-->
-<!--            android:name="com.amap.api.v2.apikey"-->
-<!--            android:value="28bd43ed17d636692c8803e9e0d246b2"/>-->
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

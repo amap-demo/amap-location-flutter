@@ -32,7 +32,7 @@ class _MyAppState extends State<MyApp> {
     ///Android: https://lbs.amap.com/api/android-location-sdk/guide/create-project/get-key
     ///iOS: https://lbs.amap.com/api/ios-location-sdk/guide/create-project/get-key
     AmapLocationFlutterPlugin.setApiKey(
-        "28bd43ed17d636692c8803e9e0d246b2", "30cbeb785c52b1b8971b6f0f4ef8b7cc");
+        "28bd43ed17d636692c8803e9e0d246b2", "dfb64c0463cb53927914364b5c09aba0");
 
     ///注册定位结果监听
     _locationListener = _locationPlugin

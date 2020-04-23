@@ -1,7 +1,8 @@
 import 'dart:async';
 
-import 'package:amap_location_flutter_plugin/amap_location_option.dart';
 import 'package:flutter/services.dart';
+
+import 'amap_location_option.dart';
 
 class AmapLocationFlutterPlugin {
   static const String _CHANNEL_METHOD_LOCATION = "amap_location_flutter_plugin";
