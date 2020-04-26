@@ -3,7 +3,7 @@
 1. 高德定位Flutter插件
 2. [高德开放平台官网](https://lbs.amap.com/api/)分别申请[Android端](https://lbs.amap.com/api/android-location-sdk/guide/create-project/get-key/)和[iOS端](https://lbs.amap.com/api/ios-location-sdk/guide/create-project/get-key)的key
 3. 如需了解高德定位SDK的相关功能，请参阅[Android定位SDK开发指南](http://lbs.amap.com/api/android-location-sdk/locationsummary/)和[iOS定位SDK开发指南](https://lbs.amap.com/api/ios-location-sdk/summary/)
-4. 高德定位Flutter插件内部没有集成动态申请插件，您可根据自身需要添加相应的权限申请插件。可以参考[permisson_handler](https://github.com/Baseflow/flutter-permission-handler)插件
+4. 高德定位Flutter插件内部没有集成动态申请权限插件，您可根据自身需要添加相应的权限申请插件。可以参考[permisson_handler](https://github.com/Baseflow/flutter-permission-handler)插件
 
 ## 使用高德定位Flutter插件
 ### 集成高德定位Flutter插件
