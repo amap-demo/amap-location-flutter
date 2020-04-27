@@ -21,17 +21,11 @@ class _MyAppState extends State<MyApp> {
   AmapLocationFlutterPlugin _locationPlugin = new AmapLocationFlutterPlugin();
 
   @override
-  Future<void> initState() async {
+  void initState() {
     super.initState();
 
     /// 动态申请定位权限
-    bool hasLocationPermission = await _locationPlugin
-        .requestLocationPermission();
-    if (hasLocationPermission) {
-      print("定位权限申请通过");
-    } else {
-      print("定位权限申请不通过");
-    }
+    requestPermission();
 
     ///设置Android和iOS的apiKey<br>
     ///key的申请请参考高德开放平台官网说明<br>
@@ -185,4 +179,16 @@ class _MyAppState extends State<MyApp> {
     ));
   }
 
+  /// 动态申请定位权限
+  void requestPermission() async {
+    // 申请权限
+    bool hasLocationPermission = await _locationPlugin
+        .requestLocationPermission();
+
+    if (hasLocationPermission) {
+      print("定位权限申请通过");
+    } else {
+      print("定位权限申请不通过");
+    }
+  }
 }
