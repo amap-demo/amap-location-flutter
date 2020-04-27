@@ -30,6 +30,7 @@ import 'package:amap_location_flutter_plugin/amap_location_flutter_plugin.dart';
 import 'package:amap_location_flutter_plugin/amap_location_option.dart';
 ```
 ## 接口说明
+
 ### 设置APIKey
 ``` Dart
 ///设置Android和iOS的apikey，建议在开始定位之前设置
@@ -37,6 +38,13 @@ import 'package:amap_location_flutter_plugin/amap_location_option.dart';
 ///[iosKey] ios平台的key
 static void setApiKey(String androidKey, String iosKey)
 ```
+### 申请定位权限
+``` Dart
+/// 申请定位权限
+/// 授予定位权限返回true， 否则返回false
+Future<bool> requestLocationPermission()
+```
+
 ### 设置定位参数
 ``` Dart
  /// 设置定位参数

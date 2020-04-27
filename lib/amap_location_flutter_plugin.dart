@@ -28,7 +28,8 @@ class AmapLocationFlutterPlugin {
 
 
   /// 申请定位权限
-  void requestLocationPermission() async {
+  /// 授予定位权限返回true， 否则返回false
+  Future<bool> requestLocationPermission() async {
     // 申请权限
     await PermissionHandler().requestPermissions([PermissionGroup.location]);
 
@@ -37,9 +38,9 @@ class AmapLocationFlutterPlugin {
         .checkPermissionStatus(PermissionGroup.location);
 
     if (permission == PermissionStatus.granted) {
-      print("定位权限申请通过");
+      return true;
     } else {
-      print("定位权限申请不通过");
+      return false;
     }
   }
 
