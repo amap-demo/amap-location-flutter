@@ -14,7 +14,7 @@
     git:
       url: https://github.com/amap-demo/amap-location-flutter.git
    ```
-  2. 执行``flutter packages get``等待插件现在完成
+  2. 执行``flutter packages get``等待插件下载完成
  * 方式二 下载到本地引用
   1. 下载高德定位Flutter插件源码
   2. 在本地工程目录下创建plugins目录，将下载的目录复制到plugins目录下
