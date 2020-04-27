@@ -42,3 +42,4 @@ captures/
 
 .idea
 .packages
+pubspec.lock

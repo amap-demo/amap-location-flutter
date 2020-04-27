@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 
 import 'amap_location_option.dart';
 
+import 'package:permission_handler/permission_handler.dart';
+
 class AmapLocationFlutterPlugin {
   static const String _CHANNEL_METHOD_LOCATION = "amap_location_flutter_plugin";
   static const String _CHANNEL_STREAM_LOCATION =
@@ -23,6 +25,23 @@ class AmapLocationFlutterPlugin {
   StreamController<Map<String, Object>> _receiveStream;
   StreamSubscription<Map<String, Object>> _subscription;
   String _pluginKey;
+
+
+  /// 申请定位权限
+  void requestLocationPermission() async {
+    // 申请权限
+    await PermissionHandler().requestPermissions([PermissionGroup.location]);
+
+    // 申请结果
+    PermissionStatus permission = await PermissionHandler()
+        .checkPermissionStatus(PermissionGroup.location);
+
+    if (permission == PermissionStatus.granted) {
+      print("定位权限申请通过");
+    } else {
+      print("定位权限申请不通过");
+    }
+  }
 
   ///初始化
   AmapLocationFlutterPlugin() {
@@ -84,4 +103,6 @@ class AmapLocationFlutterPlugin {
     }
     return _receiveStream.stream;
   }
+
+
 }

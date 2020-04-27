@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:amap_location_flutter_plugin/amap_location_flutter_plugin.dart';
 import 'package:amap_location_flutter_plugin/amap_location_option.dart';
-import 'package:permission_handler/permission_handler.dart';
+
 
 void main() {
   runApp(new MyApp());
@@ -25,7 +25,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
 
     /// 动态申请定位权限
-    requestPermission();
+    _locationPlugin.requestLocationPermission();
 
     ///设置Android和iOS的apiKey<br>
     ///key的申请请参考高德开放平台官网说明<br>
@@ -179,19 +179,4 @@ class _MyAppState extends State<MyApp> {
     ));
   }
 
-  /// 动态申请定位权限
-  void requestPermission() async {
-    // 申请权限
-    await PermissionHandler().requestPermissions([PermissionGroup.location]);
-
-    // 申请结果
-    PermissionStatus permission = await PermissionHandler()
-        .checkPermissionStatus(PermissionGroup.location);
-
-    if (permission == PermissionStatus.granted) {
-      print("定位权限申请通过");
-    } else {
-      print("定位权限申请不通过");
-    }
-  }
 }
