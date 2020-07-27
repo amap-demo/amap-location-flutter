@@ -26,6 +26,7 @@ dev_dependencies:
 
   amap_location_flutter_plugin:
     path: ../
+  permission_handler: ^4.2.0+hotfix.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
