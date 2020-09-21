@@ -1,8 +1,3 @@
-import 'dart:io';
-
-import 'dart:typed_data';
-
-import 'package:flutter/foundation.dart';
 
 /// 定位参数设置
 class AMapLocationOption {

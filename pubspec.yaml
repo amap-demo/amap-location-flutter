@@ -10,8 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  permission_handler: ^4.2.0+hotfix.2
 
+# 并没有实际使用flutter_svg,仅是为了解决flutter 1.20.0 的兼容性问题；后续版本可以不依赖该库
 dependency_overrides:
   flutter_svg: 0.18.1
 

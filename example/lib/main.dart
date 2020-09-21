@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:amap_location_flutter_plugin/amap_location_flutter_plugin.dart';
 import 'package:amap_location_flutter_plugin/amap_location_option.dart';
-
+import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   runApp(new MyApp());
@@ -23,7 +23,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-
+    
     /// 动态申请定位权限
     requestPermission();
 
@@ -43,6 +43,7 @@ class _MyAppState extends State<MyApp> {
       });
     });
   }
+
 
   @override
   void dispose() {
@@ -182,13 +183,29 @@ class _MyAppState extends State<MyApp> {
   /// 动态申请定位权限
   void requestPermission() async {
     // 申请权限
-    bool hasLocationPermission = await _locationPlugin
-        .requestLocationPermission();
-
+    bool hasLocationPermission = await requestLocationPermission();
     if (hasLocationPermission) {
       print("定位权限申请通过");
     } else {
       print("定位权限申请不通过");
     }
   }
+
+
+ /// 申请定位权限
+ /// 授予定位权限返回true， 否则返回false
+ Future<bool> requestLocationPermission() async {
+   //获取当前的权限
+   var status = await Permission.location.status;
+   if (status == PermissionStatus.granted) {//已经授权
+     return true;
+   } else {//未授权则发起一次申请
+     status = await Permission.location.request();
+     if (status == PermissionStatus.granted) {
+       return true;
+     } else {
+       return false;
+     }
+   }
+ }
 }
