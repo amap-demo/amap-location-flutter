@@ -43,3 +43,7 @@ captures/
 .idea
 .packages
 pubspec.lock
+.dart_tool
+example/.flutter-plugins-dependencies
+example/ios/Flutter/.last_build_id
+example/ios/Flutter/flutter_export_environment.sh
