@@ -8,6 +8,7 @@
 @property (nonatomic, assign) BOOL onceLocation;
 @property (nonatomic, copy) FlutterResult flutterResult;
 @property (nonatomic, strong) NSString *pluginKey;
+@property (nonatomic, copy) NSString *fullAccuracyPurposeKey;
 
 @end
 
@@ -16,6 +17,7 @@
 - (instancetype)init {
     if ([super init] == self) {
         _onceLocation = false;
+        _fullAccuracyPurposeKey = nil;
     }
     return self;
 }
@@ -50,7 +52,6 @@
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-    
     if ([@"getPlatformVersion" isEqualToString:call.method]) {
         result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
     } else if ([@"startLocation" isEqualToString:call.method]){
@@ -70,9 +71,20 @@
         }else {
             result(@NO);
         }
-
+    }else if ([@"getSystemAccuracyAuthorization" isEqualToString:call.method]) {
+        if (@available(iOS 14.0, *)) {
+            [self getSystemAccuracyAuthorization:call result:result];
+        }
     }else {
         result(FlutterMethodNotImplemented);
+    }
+}
+
+- (void)getSystemAccuracyAuthorization:(FlutterMethodCall*)call result:(FlutterResult)result {
+    if (@available(iOS 14.0, *)) {
+        AMapFlutterLocationManager *manager = [self locManagerWithCall:call];
+        CLAccuracyAuthorization curacyAuthorization = [manager currentAuthorization];
+        result(@(curacyAuthorization));
     }
 }
 
@@ -164,6 +176,23 @@
         }
     }
 
+    if (@available(iOS 14.0, *)) {
+        NSNumber *accuracyAuthorizationMode = call.arguments[@"locationAccuracyAuthorizationMode"];
+        if (accuracyAuthorizationMode) {
+            if ([accuracyAuthorizationMode integerValue] == 0) {
+                [manager setLocationAccuracyMode:AMapLocationFullAndReduceAccuracy];
+            } else if ([accuracyAuthorizationMode integerValue] == 1) {
+                [manager setLocationAccuracyMode:AMapLocationFullAccuracy];
+            } else if ([accuracyAuthorizationMode integerValue] == 2) {
+                [manager setLocationAccuracyMode:AMapLocationReduceAccuracy];
+            }
+        }
+        
+        NSString *fullAccuracyPurposeKey = call.arguments[@"fullAccuracyPurposeKey"];
+        if (fullAccuracyPurposeKey) {
+            manager.fullAccuracyPurposeKey = fullAccuracyPurposeKey;
+        }
+    }
 }
 
 - (void)destroyLocation:(FlutterMethodCall*)call
@@ -282,6 +311,50 @@
     }
     return manager;
 }
+
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 140000
+
+/**
+ *  @brief 当plist配置NSLocationTemporaryUsageDescriptionDictionary且desiredAccuracyMode设置CLAccuracyAuthorizationFullAccuracy精确定位模式时，如果用户只授权模糊定位，会调用代理的此方法。此方法实现调用申请临时精确定位权限API即可：
+ *  [manager requestTemporaryFullAccuracyAuthorizationWithPurposeKey:@"PurposeKey" completion:^(NSError *error){
+ *     if(completion){
+ *        completion(error);
+ *     }
+ *  }]; (必须调用,不然无法正常获取临时精确定位权限)
+ *  @param manager 定位 AMapLocationManager 类。
+ *  @param locationManager 需要申请临时精确定位权限的locationManager。
+ *  @param completion 临时精确定位权限API回调结果，error: 直接返回系统error即可。
+ *  @since 2.6.7
+ */
+- (void)amapLocationManager:(AMapLocationManager *)manager doRequireTemporaryFullAccuracyAuth:(CLLocationManager*)locationManager completion:(void(^)(NSError *error))completion {
+    if (@available(iOS 14.0, *)) {
+        if ([manager isKindOfClass:[AMapFlutterLocationManager class]]) {
+            AMapFlutterLocationManager *flutterLocationManager = (AMapFlutterLocationManager*)manager;
+            if (flutterLocationManager.fullAccuracyPurposeKey && [flutterLocationManager.fullAccuracyPurposeKey length] > 0) {
+                NSDictionary *locationTemporaryDictionary = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSLocationTemporaryUsageDescriptionDictionary"];
+                BOOL hasLocationTemporaryKey = locationTemporaryDictionary != nil && locationTemporaryDictionary.count != 0;
+                if (hasLocationTemporaryKey) {
+                    if ([locationTemporaryDictionary objectForKey:flutterLocationManager.fullAccuracyPurposeKey]) {
+                        [locationManager requestTemporaryFullAccuracyAuthorizationWithPurposeKey:flutterLocationManager.fullAccuracyPurposeKey completion:^(NSError * _Nullable error) {
+                            if (completion) {
+                                completion(error);
+                            }
+                   
+                        }];
+                    } else {
+                        NSLog(@"[AMapLocationKit] 要在iOS 14及以上版本使用精确定位, 在amap_location_option.dart 中配置的fullAccuracyPurposeKey的key不包含在infoPlist中,请检查配置的key是否正确");
+                    }
+                } else {
+                    NSLog(@"[AMapLocationKit] 要在iOS 14及以上版本使用精确定位, 需要在Info.plist中添加NSLocationTemporaryUsageDescriptionDictionary字典，且自定义Key描述精确定位的使用场景。");
+                }
+        
+            } else {
+                NSLog(@"[AMapLocationKit] 要在iOS 14及以上版本使用精确定位, 需要在amap_location_option.dart 中配置对应场景下fullAccuracyPurposeKey的key。注意：这个key要和infoPlist中的配置一样");
+            }
+        }
+    }
+}
+#endif
 
 /**
  *  @brief 当plist配置NSLocationAlwaysUsageDescription或者NSLocationAlwaysAndWhenInUseUsageDescription，并且[CLLocationManager authorizationStatus] == kCLAuthorizationStatusNotDetermined，会调用代理的此方法。

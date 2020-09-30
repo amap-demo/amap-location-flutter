@@ -1,7 +1,5 @@
 import 'dart:async';
-
 import 'package:flutter/services.dart';
-
 import 'amap_location_option.dart';
 
 class AmapLocationFlutterPlugin {
@@ -23,6 +21,17 @@ class AmapLocationFlutterPlugin {
   StreamController<Map<String, Object>> _receiveStream;
   StreamSubscription<Map<String, Object>> _subscription;
   String _pluginKey;
+
+  /// 适配iOS 14定位新特性，只在iOS平台有效
+  Future<AMapAccuracyAuthorization> getSystemAccuracyAuthorization() async {
+    int result = await _methodChannel.invokeMethod("getSystemAccuracyAuthorization",{'pluginKey':_pluginKey});
+    if (result == 0) {
+      return AMapAccuracyAuthorization.AMapAccuracyAuthorizationFullAccuracy;
+    } else if (result == 1) {
+      return AMapAccuracyAuthorization.AMapAccuracyAuthorizationReducedAccuracy;
+    }
+    return AMapAccuracyAuthorization.AMapAccuracyAuthorizationInvalid;
+  }
 
   ///初始化
   AmapLocationFlutterPlugin() {

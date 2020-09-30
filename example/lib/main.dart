@@ -71,6 +71,10 @@ class _MyAppState extends State<MyApp> {
       ///逆地理信息的语言类型
       locationOption.geoLanguage = GeoLanguage.DEFAULT;
 
+      locationOption.desiredLocationAccuracyAuthorizationMode = AMapLocationAccuracyAuthorizationMode.ReduceAccuracy;
+
+      locationOption.fullAccuracyPurposeKey = "AMapLocationScene";
+
       ///设置Android端连续定位的定位间隔
       locationOption.locationInterval = 2000;
       ///设置Android端的定位模式<br>
@@ -160,6 +164,8 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     List<Widget> widgets = new List();
     widgets.add(_createButtonContainer());
+    ///获取native精度类型
+    requestAccuracyAuthorization();
 
     if (_locationResult != null) {
       _locationResult.forEach((key, value) {
@@ -178,6 +184,18 @@ class _MyAppState extends State<MyApp> {
         children: widgets,
       ),
     ));
+  }
+
+  ///获取iOS native的accuracyAuthorization类型
+  void requestAccuracyAuthorization() async {
+    AMapAccuracyAuthorization currentAccuracyAuthorization = await _locationPlugin.getSystemAccuracyAuthorization();
+    if (currentAccuracyAuthorization == AMapAccuracyAuthorization.AMapAccuracyAuthorizationFullAccuracy) {
+        print("精确定位类型");
+    } else if (currentAccuracyAuthorization == AMapAccuracyAuthorization.AMapAccuracyAuthorizationReducedAccuracy) {
+        print("模糊定位类型");
+    } else {
+        print("未知定位类型");
+    }
   }
 
   /// 动态申请定位权限

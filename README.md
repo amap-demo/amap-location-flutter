@@ -7,6 +7,7 @@
 
 ## 使用高德定位Flutter插件
 ### 集成高德定位Flutter插件
+#### 集成方式：
  * 方式一 github方引用
   1. 在pubspect.yaml的dependencies里添加如下代码
   ``` Java
@@ -24,6 +25,14 @@
     path: plugins/amap-location-flutter
   ```
   4. 执行``flutter packages get``等待插件现在完成
+  
+#### 常见问题：
+1、[在iOS设备上运行或者运行iOS工程遇到： `Invalid `Podfile` file: cannot load such file - /flutter/packages/flutter_tools/bin/podhelper`](https://github.com/flutter/flutter/issues/59522)
+```
+$ rm ios/Podfile
+$ flutter build ios
+```
+
 ### 在需要的定位功能的页面中引入定位Flutter插件的dart类
 ``` Dart
 import 'package:amap_location_flutter_plugin/amap_location_flutter_plugin.dart';
@@ -133,3 +142,5 @@ For help getting started with Flutter, view our online
 [documentation](https://flutter.io/).
 
 For help on editing plugin code, view the [documentation](https://flutter.io/developing-packages/#edit-plugin-package).
+
+

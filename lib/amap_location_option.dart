@@ -48,15 +48,23 @@ class AMapLocationOption {
   /// 默认值：-1，不做限制<br>
   double distanceFilter = -1;
 
+  ///iOS 14中设置期望的定位精度权限
+  AMapLocationAccuracyAuthorizationMode desiredLocationAccuracyAuthorizationMode = AMapLocationAccuracyAuthorizationMode.FullAccuracy;
+
+  /// iOS 14中定位精度权限由模糊定位升级到精确定位时，需要用到的场景key fullAccuracyPurposeKey 这个key要和plist中的配置一样
+  String fullAccuracyPurposeKey = "";
+
   AMapLocationOption(
-      {this.locationInterval = 2000,
-      this.needAddress = true,
-      this.locationMode = AMapLocationMode.Hight_Accuracy,
-      this.geoLanguage = GeoLanguage.DEFAULT,
-      this.onceLocation = false,
-      this.pausesLocationUpdatesAutomatically = false,
-      this.desiredAccuracy = DesiredAccuracy.Best,
-      this.distanceFilter = -1});
+      {
+        this.locationInterval = 2000,
+        this.needAddress = true,
+        this.locationMode = AMapLocationMode.Hight_Accuracy,
+        this.geoLanguage = GeoLanguage.DEFAULT,
+        this.onceLocation = false,
+        this.pausesLocationUpdatesAutomatically = false,
+        this.desiredAccuracy = DesiredAccuracy.Best,
+        this.distanceFilter = -1,
+        this.desiredLocationAccuracyAuthorizationMode = AMapLocationAccuracyAuthorizationMode.FullAccuracy});
 
   ///获取设置的定位参数对应的Map
   Map getOptionsMap() {
@@ -68,7 +76,9 @@ class AMapLocationOption {
       "onceLocation": onceLocation,
       "pausesLocationUpdatesAutomatically": pausesLocationUpdatesAutomatically,
       "desiredAccuracy": desiredAccuracy.index,
-      'distanceFilter': distanceFilter
+      'distanceFilter': distanceFilter,
+      "locationAccuracyAuthorizationMode": desiredLocationAccuracyAuthorizationMode.index,
+      "fullAccuracyPurposeKey":fullAccuracyPurposeKey
     };
   }
 }
@@ -116,4 +126,28 @@ enum DesiredAccuracy {
 
   ///3000米
   ThreeKilometers,
+}
+
+///iOS 14中期望的定位精度,只有在iOS 14的设备上才能生效
+enum AMapLocationAccuracyAuthorizationMode {
+  ///精确和模糊定位
+  FullAndReduceAccuracy,
+
+  ///精确定位
+  FullAccuracy,
+
+  ///模糊定位
+  ReduceAccuracy
+}
+
+///iOS 14中系统的定位类型信息
+enum AMapAccuracyAuthorization {
+  ///系统的精确定位类型
+  AMapAccuracyAuthorizationFullAccuracy,
+
+  ///系统的模糊定位类型
+  AMapAccuracyAuthorizationReducedAccuracy,
+
+  ///未知类型
+  AMapAccuracyAuthorizationInvalid
 }
