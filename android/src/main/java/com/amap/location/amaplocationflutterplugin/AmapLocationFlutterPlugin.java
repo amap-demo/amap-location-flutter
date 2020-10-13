@@ -5,8 +5,8 @@ import android.text.TextUtils;
 
 import com.amap.api.location.AMapLocationClient;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.EventChannel;
@@ -30,7 +30,7 @@ public class AmapLocationFlutterPlugin implements MethodCallHandler,
     public static EventChannel.EventSink mEventSink = null;
 
 
-    private Map<String, AMapLocationClientImpl> locationClientMap = new HashMap<String, AMapLocationClientImpl>(10);
+    private Map<String, AMapLocationClientImpl> locationClientMap = new ConcurrentHashMap<String, AMapLocationClientImpl>(8);
 
     @Override
     public void onMethodCall(MethodCall call, Result result) {
@@ -74,23 +74,7 @@ public class AmapLocationFlutterPlugin implements MethodCallHandler,
      * 开始定位
      */
     private void startLocation(Map argsMap) {
-        if (null == locationClientMap) {
-            locationClientMap = new HashMap<String, AMapLocationClientImpl>(10);
-        }
-
-        String pluginKey = getPluginKeyFromArgs(argsMap);
-        if (TextUtils.isEmpty(pluginKey)) {
-            return;
-        }
-
-        AMapLocationClientImpl locationClientImp;
-        if (!locationClientMap.containsKey(pluginKey)) {
-            locationClientImp = new AMapLocationClientImpl(mContext, pluginKey, mEventSink);
-            locationClientMap.put(pluginKey, locationClientImp);
-        } else {
-            locationClientImp = getLocationClientImp(argsMap);
-        }
-
+        AMapLocationClientImpl locationClientImp = getLocationClientImp(argsMap);
         if (null != locationClientImp) {
             locationClientImp.startLocation();
         }
@@ -116,6 +100,8 @@ public class AmapLocationFlutterPlugin implements MethodCallHandler,
         AMapLocationClientImpl locationClientImp = getLocationClientImp(argsMap);
         if (null != locationClientImp) {
             locationClientImp.destroy();
+
+            locationClientMap.remove(getPluginKeyFromArgs(argsMap));
         }
     }
 
@@ -174,17 +160,19 @@ public class AmapLocationFlutterPlugin implements MethodCallHandler,
     }
 
     private AMapLocationClientImpl getLocationClientImp(Map argsMap) {
-        if (null == locationClientMap || locationClientMap.size() <= 0) {
-            return null;
+        if (null == locationClientMap) {
+            locationClientMap = new ConcurrentHashMap<String, AMapLocationClientImpl>(8);
         }
-        String pluginKey = null;
-        if (null != argsMap) {
-            pluginKey = (String) argsMap.get("pluginKey");
-        }
+
+        String pluginKey = getPluginKeyFromArgs(argsMap);
         if (TextUtils.isEmpty(pluginKey)) {
             return null;
         }
 
+        if (!locationClientMap.containsKey(pluginKey)) {
+            AMapLocationClientImpl locationClientImp = new AMapLocationClientImpl(mContext, pluginKey, mEventSink);
+            locationClientMap.put(pluginKey, locationClientImp);
+        }
         return locationClientMap.get(pluginKey);
     }
 
