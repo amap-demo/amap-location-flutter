@@ -1,3 +1,5 @@
+## 0.1.4
+* add platform condition for method getSystemAccuracyAuthorization to avoid android crash;
 
 ## 0.1.3
 * fix Android cityCode and adCode return error
