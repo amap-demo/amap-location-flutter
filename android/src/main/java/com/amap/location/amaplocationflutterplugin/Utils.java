@@ -37,8 +37,8 @@ public class Utils {
                 result.put("district", location.getDistrict());
                 result.put("street", location.getStreet());
                 result.put("streetNumber", location.getStreetNum());
-                result.put("cityCode", location.getCity());
-                result.put("adCode", location.getCity());
+                result.put("cityCode", location.getCityCode());
+                result.put("adCode", location.getAdCode());
                 result.put("address", location.getAddress());
                 result.put("description", location.getDescription());
             } else {
