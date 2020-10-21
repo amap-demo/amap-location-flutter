@@ -1,6 +1,6 @@
 name: amap_location_flutter_plugin
 description: AMapLocation flutter plugin
-version: 0.1.2
+version: 0.1.3
 homepage: https://lbs.amap.com/
 repository: https://github.com/amap-demo/amap-location-flutter
 

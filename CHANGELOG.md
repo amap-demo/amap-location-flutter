@@ -1,3 +1,8 @@
+
+## 0.1.3
+* fix Android cityCode and adCode return error
+* add iOS cityCode
+
 ## 0.1.2
 * update the dependent version number of the fluent SDK
 
@@ -6,7 +11,5 @@
 
 ## 0.1.0
 * init release
-
-* TODO: Describe initial release.
 
 
