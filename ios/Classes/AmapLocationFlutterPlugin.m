@@ -250,13 +250,12 @@
                 [dic setValue:reGeocode.street forKey:@"street"];
             }
             
-            
             if (reGeocode.number) {
                 [dic setValue:reGeocode.number forKey:@"streetNumber"];
             }
             
-            if (reGeocode.number) {
-                [dic setValue:reGeocode.number forKey:@"streetNumber"];
+            if (reGeocode.citycode) {
+                [dic setValue:reGeocode.citycode forKey:@"cityCode"];
             }
 
             if (reGeocode.adcode) {
