@@ -34,6 +34,9 @@ class _MyAppState extends State<MyApp> {
     AmapLocationFlutterPlugin.setApiKey(
         "28bd43ed17d636692c8803e9e0d246b2", "dfb64c0463cb53927914364b5c09aba0");
 
+    ///iOS 获取native精度类型
+    requestAccuracyAuthorization();
+
     ///注册定位结果监听
     _locationListener = _locationPlugin
         .onLocationChanged()
@@ -164,8 +167,6 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     List<Widget> widgets = new List();
     widgets.add(_createButtonContainer());
-    ///获取native精度类型
-    requestAccuracyAuthorization();
 
     if (_locationResult != null) {
       _locationResult.forEach((key, value) {
