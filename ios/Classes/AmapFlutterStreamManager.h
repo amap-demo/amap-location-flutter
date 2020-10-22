@@ -17,7 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 
 @interface AmapFlutterStreamHandler : NSObject<FlutterStreamHandler>
-@property (nonatomic, strong) FlutterEventSink eventSink;
+@property (nonatomic, strong,nullable) FlutterEventSink eventSink;
 
 @end
 NS_ASSUME_NONNULL_END

@@ -32,7 +32,7 @@
 }
 
 - (FlutterError*)onCancelWithArguments:(id)arguments {
-    
+    self.eventSink = nil;
     return nil;
 }
 
